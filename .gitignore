@@ -1,0 +1,9 @@
+/node_modules
+/.next
+.env.local
+.mcp.json
+/project-context
+.playwright-mcp/doctor-dashboard-test.png
+.playwright-mcp/doctor-schedule-test.png
+.playwright-mcp/full-schedule-page.png
+.playwright-mcp/schedule-with-sidebar.png
