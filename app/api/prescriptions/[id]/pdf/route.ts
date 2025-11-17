@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/lib/supabase/server'
@@ -68,25 +69,40 @@ export async function GET(
       )
     }
 
+    const patientRecord = Array.isArray(prescription.patient)
+      ? prescription.patient[0]
+      : prescription.patient
+    const doctorRecord = Array.isArray(prescription.doctor)
+      ? prescription.doctor[0]
+      : prescription.doctor
+    const clinicRecord = patientRecord && 'clinic' in patientRecord
+      ? (Array.isArray((patientRecord as any).clinic) ? (patientRecord as any).clinic[0] : (patientRecord as any).clinic)
+      : null
+
     // Check authorization - user must be the doctor, patient, or staff member
-    const isDoctor = user.id === prescription.doctor.id
-    const isPatient = prescription.patient.id && (
-      await supabaseAdmin
+    const isDoctor = !!doctorRecord && user.id === doctorRecord.id
+
+    let isPatient = false
+    if (patientRecord?.id) {
+      const { data: patientMatch } = await supabaseAdmin
         .from('patients')
         .select('id')
-        .eq('id', prescription.patient.id)
+        .eq('id', patientRecord.id)
         .eq('profile_id', user.id)
         .single()
-    ).data
+      isPatient = !!patientMatch
+    }
 
-    const isStaff = (
-      await supabaseAdmin
+    let isStaff = false
+    if (clinicRecord?.id) {
+      const { data: staffMatch } = await supabaseAdmin
         .from('clinic_staff')
         .select('id')
         .eq('user_id', user.id)
-        .eq('clinic_id', prescription.patient.clinic.id)
+        .eq('clinic_id', clinicRecord.id)
         .single()
-    ).data
+      isStaff = !!staffMatch
+    }
 
     if (!isDoctor && !isPatient && !isStaff) {
       return NextResponse.json(
@@ -99,18 +115,18 @@ export async function GET(
     const pdfData = {
       prescription_id: prescription.id,
       patient: {
-        first_name: prescription.patient.first_name,
-        last_name: prescription.patient.last_name,
-        date_of_birth: prescription.patient.date_of_birth,
-        phone: prescription.patient.phone,
+        first_name: patientRecord?.first_name ?? '',
+        last_name: patientRecord?.last_name ?? '',
+        date_of_birth: patientRecord?.date_of_birth ?? '',
+        phone: patientRecord?.phone ?? '',
       },
       doctor: {
-        full_name: prescription.doctor.full_name,
+        full_name: doctorRecord?.full_name ?? 'Unknown Doctor',
       },
       clinic: {
-        name: prescription.patient.clinic.name,
-        address: prescription.patient.clinic.address,
-        phone: prescription.patient.clinic.phone,
+        name: clinicRecord?.name ?? 'Clinic',
+        address: clinicRecord?.address ?? '',
+        phone: clinicRecord?.phone ?? '',
       },
       medications: prescription.medications,
       instructions: prescription.instructions,
@@ -119,9 +135,10 @@ export async function GET(
     }
 
     const pdfBuffer = generatePrescriptionPDF(pdfData)
+    const pdfBody = Buffer.from(pdfBuffer)
 
     // Return PDF as download
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(pdfBody, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="prescription-${prescription.id}.pdf"`,

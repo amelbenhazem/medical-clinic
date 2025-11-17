@@ -99,13 +99,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Format the response to make it easier to use
-    const formattedStaff = staff?.map(s => ({
-      id: s.profiles?.full_name ? s.user_id : s.id,
-      full_name: s.profiles?.full_name || 'Unknown',
-      role: s.role,
-      phone: s.profiles?.phone,
-      created_at: s.created_at,
-    })) || []
+    const formattedStaff = staff?.map(s => {
+      const profile = Array.isArray(s.profiles) ? s.profiles[0] : s.profiles
+      return {
+        id: profile?.full_name ? s.user_id : s.id,
+        full_name: profile?.full_name || 'Unknown',
+        role: s.role,
+        phone: profile?.phone,
+        created_at: s.created_at,
+      }
+    }) || []
 
     return NextResponse.json({
       staff: formattedStaff,

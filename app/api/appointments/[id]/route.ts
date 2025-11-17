@@ -193,28 +193,41 @@ export async function PATCH(
       )
     }
 
+    // Supabase can return relational data as arrays; normalize patient reference
+    const patientRecord = Array.isArray(updatedAppointment.patient)
+      ? updatedAppointment.patient[0]
+      : updatedAppointment.patient
+    const doctorRecord = Array.isArray(updatedAppointment.doctor)
+      ? updatedAppointment.doctor[0]
+      : updatedAppointment.doctor
+
     // Get patient profile_id for notification
-    const { data: patientData } = await supabaseAdmin
-      .from('patients')
-      .select('profile_id')
-      .eq('id', updatedAppointment.patient.id)
-      .single()
+    let patientProfileId: string | null = null
+    if (patientRecord?.id) {
+      const { data: patientData } = await supabaseAdmin
+        .from('patients')
+        .select('profile_id')
+        .eq('id', patientRecord.id)
+        .single()
+
+      patientProfileId = patientData?.profile_id ?? null
+    }
 
     // Send notification if status changed
-    if (patientData?.profile_id && status && updatedAppointment) {
+    if (patientProfileId && status && updatedAppointment) {
       if (status === 'confirmed') {
         await notifyAppointmentConfirmed(
-          patientData.profile_id,
+          patientProfileId,
           updatedAppointment.id,
-          updatedAppointment.doctor.full_name,
+          doctorRecord?.full_name ?? 'Unknown Doctor',
           updatedAppointment.appointment_date,
           updatedAppointment.start_time
         )
       } else if (status === 'cancelled') {
         await notifyAppointmentCancelled(
-          patientData.profile_id,
+          patientProfileId,
           updatedAppointment.id,
-          updatedAppointment.doctor.full_name,
+          doctorRecord?.full_name ?? 'Unknown Doctor',
           updatedAppointment.appointment_date
         )
       }

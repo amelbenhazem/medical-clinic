@@ -201,7 +201,7 @@ export default function ReceptionistAppointmentsPage() {
         patientName: `${apt.patient.first_name} ${apt.patient.last_name}`,
         doctorName: apt.doctor.full_name,
         serviceName: apt.service.name,
-        notes: apt.notes,
+        notes: apt.notes ?? undefined,
       },
     }
   })

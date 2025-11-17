@@ -28,7 +28,7 @@ type PrescriptionData = {
   created_at: string
 }
 
-export function generatePrescriptionPDF(data: PrescriptionData): Uint8Array {
+export function generatePrescriptionPDF(data: PrescriptionData): ArrayBuffer {
   const doc = new jsPDF()
   let yPosition = 20
 
@@ -169,6 +169,6 @@ export function generatePrescriptionPDF(data: PrescriptionData): Uint8Array {
     doc.text('This is a computer-generated prescription', 105, 290, { align: 'center' })
   }
 
-  // Return PDF as Uint8Array
-  return doc.output('arraybuffer')
+  // Return PDF as ArrayBuffer
+  return doc.output('arraybuffer') as ArrayBuffer
 }

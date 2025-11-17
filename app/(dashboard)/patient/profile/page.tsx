@@ -21,7 +21,7 @@ type Patient = {
 }
 
 export default function PatientProfilePage() {
-  const { profile } = useAuth()
+  const { profile, user } = useAuth()
   const [patient, setPatient] = useState<Patient | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -141,7 +141,7 @@ export default function PatientProfilePage() {
         <CardContent className="space-y-3">
           <div>
             <Label className="text-sm font-medium">Email</Label>
-            <p className="text-sm text-neutral-600 mt-1">{profile?.email}</p>
+            <p className="text-sm text-neutral-600 mt-1">{user?.email || 'Not set'}</p>
           </div>
           <div>
             <Label className="text-sm font-medium">Full Name</Label>

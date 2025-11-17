@@ -287,12 +287,17 @@ export async function POST(request: NextRequest) {
       .eq('id', patient_id)
       .single()
 
+    // Supabase may return relational joins as arrays; normalize doctor reference
+    const doctorRecord = appointment
+      ? (Array.isArray(appointment.doctor) ? appointment.doctor[0] : appointment.doctor)
+      : null
+
     // Send notification if patient has a profile
     if (patientData?.profile_id && appointment) {
       await notifyAppointmentCreated(
         patientData.profile_id,
         appointment.id,
-        appointment.doctor.full_name,
+        doctorRecord?.full_name ?? 'Unknown Doctor',
         appointment.appointment_date,
         appointment.start_time
       )
