@@ -122,7 +122,7 @@ export default function ReceptionistAppointmentsPage() {
         .filter((staff: any) => staff.role === 'doctor')
         .map((staff: any) => ({
           id: staff.user_id,
-          full_name: staff.profiles?.full_name || 'Unknown',
+          full_name: staff.full_name || 'Unknown',
         }))
       setDoctors(doctorsList)
     } catch (err: any) {
