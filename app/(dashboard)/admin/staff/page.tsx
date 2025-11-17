@@ -79,9 +79,9 @@ export default function StaffManagementPage() {
         role: member.role,
         created_at: member.created_at,
         profile: {
-          full_name: member.profiles?.full_name || 'N/A',
-          email: 'staff@clinic.com', // Email not accessible via API
-          phone: member.profiles?.phone || null,
+          full_name: member.full_name || 'N/A',
+          email: member.email || 'N/A',
+          phone: member.phone || null,
         },
       }))
 

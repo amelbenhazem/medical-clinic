@@ -98,20 +98,28 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Format the response to make it easier to use
-    const formattedStaff = staff?.map(s => {
-      const profile = Array.isArray(s.profiles) ? s.profiles[0] : s.profiles
-      return {
-        id: profile?.full_name ? s.user_id : s.id,
-        full_name: profile?.full_name || 'Unknown',
-        role: s.role,
-        phone: profile?.phone,
-        created_at: s.created_at,
-      }
-    }) || []
+    // Fetch email addresses from auth.users for each staff member
+    const staffWithEmails = await Promise.all(
+      (staff || []).map(async (s) => {
+        const profile = Array.isArray(s.profiles) ? s.profiles[0] : s.profiles
+
+        // Get email from auth.users
+        const { data: userData } = await supabaseAdmin.auth.admin.getUserById(s.user_id)
+
+        return {
+          id: s.id,
+          user_id: s.user_id,
+          full_name: profile?.full_name || 'Unknown',
+          email: userData?.user?.email || 'N/A',
+          role: s.role,
+          phone: profile?.phone,
+          created_at: s.created_at,
+        }
+      })
+    )
 
     return NextResponse.json({
-      staff: formattedStaff,
+      staff: staffWithEmails,
     })
   } catch (error: any) {
     console.error('Error fetching staff:', error)
