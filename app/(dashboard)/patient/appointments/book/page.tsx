@@ -84,7 +84,15 @@ export default function BookAppointmentPage() {
       const doctorsResult = await doctorsRes.json()
 
       if (doctorsRes.ok) {
-        setDoctors(doctorsResult.staff || [])
+        // Map to use user_id as id for doctor selection
+        const doctorsList = (doctorsResult.staff || []).map((staff: any) => ({
+          id: staff.user_id,
+          user_id: staff.user_id,
+          full_name: staff.full_name || 'Unknown',
+          email: staff.email,
+          phone: staff.phone,
+        }))
+        setDoctors(doctorsList)
       }
 
       // Get services

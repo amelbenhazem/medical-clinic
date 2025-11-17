@@ -149,25 +149,43 @@ export async function GET(request: NextRequest) {
     const dayOfWeek = requestedDate.getDay()
 
     // Check doctor availability for this day
-    const { data: availability, error: availabilityError } = await supabaseAdmin
+    const { data: availability } = await supabaseAdmin
       .from('doctor_availability')
       .select('start_time, end_time, is_available')
       .eq('doctor_id', doctorId)
       .eq('day_of_week', dayOfWeek)
       .single()
 
-    // If doctor is not available on this day, return empty slots
-    if (!availability || !availability.is_available) {
+    let startHour: number, startMinute: number, endHour: number, endMinute: number
+
+    // If doctor has set availability for this day
+    if (availability && availability.is_available) {
+      // Use doctor's configured availability
+      [startHour, startMinute] = availability.start_time.split(':').map(Number)
+      ;[endHour, endMinute] = availability.end_time.split(':').map(Number)
+    } else if (availability && !availability.is_available) {
+      // Doctor explicitly marked this day as unavailable
       return NextResponse.json({
         date,
         duration_minutes: durationMinutes,
         available_slots: [],
       })
+    } else {
+      // No availability configured - use default working hours (Mon-Fri 9-5)
+      // If weekend (Sunday=0, Saturday=6), return no slots
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        return NextResponse.json({
+          date,
+          duration_minutes: durationMinutes,
+          available_slots: [],
+        })
+      }
+      // Default weekday hours: 9 AM to 5 PM
+      startHour = 9
+      startMinute = 0
+      endHour = 17
+      endMinute = 0
     }
-
-    // Extract working hours from doctor availability
-    const [startHour, startMinute] = availability.start_time.split(':').map(Number)
-    const [endHour, endMinute] = availability.end_time.split(':').map(Number)
 
     const slotInterval = 30 // 30-minute slots
 
