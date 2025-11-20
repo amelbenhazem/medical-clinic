@@ -20,6 +20,8 @@ spec:
       labels:
         app: nextjs-app
     spec:
+      imagePullSecrets:
+      - name: ghcr-secret
       containers:
       - name: nextjs
         image: ghcr.io/yusseftekup/projet-react-fac:latest
