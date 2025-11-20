@@ -54,6 +54,11 @@ spec:
             secretKeyRef:
               name: nextjs-secrets
               key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        - name: SUPABASE_SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: nextjs-secrets
+              key: SUPABASE_SERVICE_ROLE_KEY
         resources:
           requests:
             memory: "256Mi"
