@@ -31,6 +31,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { CalendarIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Tables } from '@/types/database.types'
+import { SmartSlotSuggestions } from '@/components/ai/smart-slot-suggestions'
 
 type Patient = Tables<'patients'>
 type Service = Tables<'services'>
@@ -100,6 +101,7 @@ export function AppointmentForm({
         },
   })
 
+  const watchedPatientId = form.watch('patient_id')
   const watchedDoctorId = form.watch('doctor_id')
   const watchedDate = form.watch('appointment_date')
   const watchedServiceId = form.watch('service_id')
@@ -372,6 +374,21 @@ export function AppointmentForm({
             </FormItem>
           )}
         />
+
+        {/* Suggestions IA Intelligentes */}
+        {watchedPatientId && watchedDoctorId && watchedServiceId && watchedDate && availableSlots.length > 0 && (
+          <SmartSlotSuggestions
+            patientId={form.watch('patient_id')}
+            doctorId={watchedDoctorId}
+            serviceId={watchedServiceId}
+            date={format(watchedDate, 'yyyy-MM-dd')}
+            notes={form.watch('notes') || ''}
+            availableSlots={availableSlots}
+            onSlotSelect={(time) => {
+              form.setValue('start_time', time)
+            }}
+          />
+        )}
 
         {error && (
           <div className="text-sm text-red-500 bg-red-50 p-3 rounded-md">
