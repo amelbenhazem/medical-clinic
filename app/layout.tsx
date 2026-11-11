@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Medical Clinic Management System",
-  description: "Manage your clinic with ease",
+  title: "Medical Clinic",
+  description:
+    "Clinic management platform for appointments, patient records, consultations and prescriptions",
 };
 
 export default function RootLayout({

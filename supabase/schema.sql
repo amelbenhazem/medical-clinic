@@ -1,11 +1,9 @@
--- ============================================
--- SCHÉMA COMPLET POUR SYSTÈME DE GESTION DE CLINIQUE
--- ============================================
--- Exécutez ce script dans Supabase SQL Editor
--- https://supabase.com/dashboard/project/nybpuiqopfroyjgjfomd/editor
+-- Medical Clinic — PostgreSQL schema for Supabase
+-- Run this file in the Supabase SQL Editor (New query → paste → Run).
+-- After running, create a private Storage bucket named: medical-documents
 
 -- ============================================
--- 1. TABLE PROFILES (Utilisateurs)
+-- 1️⃣ TABLE PROFILES (Profils Utilisateurs)
 -- ============================================
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -18,7 +16,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 );
 
 -- ============================================
--- 2. TABLE CLINICS (Cliniques)
+-- 2️⃣ TABLE CLINICS (Cliniques)
 -- ============================================
 CREATE TABLE IF NOT EXISTS clinics (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -32,7 +30,7 @@ CREATE TABLE IF NOT EXISTS clinics (
 );
 
 -- ============================================
--- 3. TABLE CLINIC_STAFF (Personnel Clinique)
+-- 3️⃣ TABLE CLINIC_STAFF (Personnel Clinique)
 -- ============================================
 CREATE TABLE IF NOT EXISTS clinic_staff (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -44,7 +42,7 @@ CREATE TABLE IF NOT EXISTS clinic_staff (
 );
 
 -- ============================================
--- 4. TABLE PATIENTS (Patients)
+-- 4️⃣ TABLE PATIENTS (Patients)
 -- ============================================
 CREATE TABLE IF NOT EXISTS patients (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -64,7 +62,7 @@ CREATE TABLE IF NOT EXISTS patients (
 );
 
 -- ============================================
--- 5. TABLE SERVICES (Services Clinique)
+-- 5️⃣ TABLE SERVICES (Services Clinique)
 -- ============================================
 CREATE TABLE IF NOT EXISTS services (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -77,7 +75,7 @@ CREATE TABLE IF NOT EXISTS services (
 );
 
 -- ============================================
--- 6. TABLE APPOINTMENTS (Rendez-vous)
+-- 6️⃣ TABLE APPOINTMENTS (Rendez-vous)
 -- ============================================
 CREATE TABLE IF NOT EXISTS appointments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -96,7 +94,7 @@ CREATE TABLE IF NOT EXISTS appointments (
 );
 
 -- ============================================
--- 7. TABLE CONSULTATIONS (Consultations)
+-- 7️⃣ TABLE CONSULTATIONS (Consultations Médicales)
 -- ============================================
 CREATE TABLE IF NOT EXISTS consultations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -113,7 +111,7 @@ CREATE TABLE IF NOT EXISTS consultations (
 );
 
 -- ============================================
--- 8. TABLE PRESCRIPTIONS (Prescriptions)
+-- 8️⃣ TABLE PRESCRIPTIONS (Prescriptions)
 -- ============================================
 CREATE TABLE IF NOT EXISTS prescriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -129,7 +127,7 @@ CREATE TABLE IF NOT EXISTS prescriptions (
 );
 
 -- ============================================
--- 9. TABLE MEDICAL_HISTORY (Historique Médical)
+-- 9️⃣ TABLE MEDICAL_HISTORY (Historique Médical)
 -- ============================================
 CREATE TABLE IF NOT EXISTS medical_history (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -145,7 +143,7 @@ CREATE TABLE IF NOT EXISTS medical_history (
 );
 
 -- ============================================
--- 10. TABLE NOTIFICATIONS (Notifications)
+-- 🔟 TABLE NOTIFICATIONS (Notifications)
 -- ============================================
 CREATE TABLE IF NOT EXISTS notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -160,7 +158,7 @@ CREATE TABLE IF NOT EXISTS notifications (
 );
 
 -- ============================================
--- 11. TABLE DOCTOR_AVAILABILITY (Disponibilités)
+-- 1️⃣1️⃣ TABLE DOCTOR_AVAILABILITY (Disponibilités Médecins)
 -- ============================================
 CREATE TABLE IF NOT EXISTS doctor_availability (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -174,26 +172,28 @@ CREATE TABLE IF NOT EXISTS doctor_availability (
 );
 
 -- ============================================
--- 12. ROW LEVEL SECURITY (RLS) - PROFILES
+-- 🔒 ROW LEVEL SECURITY (RLS) - SÉCURITÉ
 -- ============================================
+
+-- PROFILES
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
--- Les utilisateurs peuvent voir leur propre profil
+DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
 CREATE POLICY "Users can view own profile"
   ON profiles FOR SELECT
   USING (auth.uid() = id);
 
--- Les utilisateurs peuvent mettre à jour leur propre profil
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
 CREATE POLICY "Users can update own profile"
   ON profiles FOR UPDATE
   USING (auth.uid() = id);
 
--- Les utilisateurs peuvent insérer leur propre profil
+DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
 CREATE POLICY "Users can insert own profile"
   ON profiles FOR INSERT
   WITH CHECK (auth.uid() = id);
 
--- Les admins peuvent voir tous les profils
+DROP POLICY IF EXISTS "Admins can view all profiles" ON profiles;
 CREATE POLICY "Admins can view all profiles"
   ON profiles FOR SELECT
   USING (
@@ -204,27 +204,25 @@ CREATE POLICY "Admins can view all profiles"
     )
   );
 
--- ============================================
--- 13. ROW LEVEL SECURITY - CLINICS
--- ============================================
+-- CLINICS
 ALTER TABLE clinics ENABLE ROW LEVEL SECURITY;
 
--- Les propriétaires peuvent voir leurs cliniques
+DROP POLICY IF EXISTS "Owners can view own clinics" ON clinics;
 CREATE POLICY "Owners can view own clinics"
   ON clinics FOR SELECT
   USING (owner_id = auth.uid());
 
--- Les propriétaires peuvent modifier leurs cliniques
+DROP POLICY IF EXISTS "Owners can update own clinics" ON clinics;
 CREATE POLICY "Owners can update own clinics"
   ON clinics FOR UPDATE
   USING (owner_id = auth.uid());
 
--- Les propriétaires peuvent créer des cliniques
+DROP POLICY IF EXISTS "Owners can insert own clinics" ON clinics;
 CREATE POLICY "Owners can insert own clinics"
   ON clinics FOR INSERT
   WITH CHECK (owner_id = auth.uid());
 
--- Le staff peut voir les cliniques où ils travaillent
+DROP POLICY IF EXISTS "Staff can view clinic" ON clinics;
 CREATE POLICY "Staff can view clinic"
   ON clinics FOR SELECT
   USING (
@@ -235,17 +233,15 @@ CREATE POLICY "Staff can view clinic"
     )
   );
 
--- ============================================
--- 14. ROW LEVEL SECURITY - PATIENTS
--- ============================================
+-- PATIENTS
 ALTER TABLE patients ENABLE ROW LEVEL SECURITY;
 
--- Les patients peuvent voir leur propre profil
+DROP POLICY IF EXISTS "Patients can view own profile" ON patients;
 CREATE POLICY "Patients can view own profile"
   ON patients FOR SELECT
   USING (profile_id = auth.uid());
 
--- Le staff peut voir les patients de leur clinique
+DROP POLICY IF EXISTS "Staff can view clinic patients" ON patients;
 CREATE POLICY "Staff can view clinic patients"
   ON patients FOR SELECT
   USING (
@@ -256,7 +252,7 @@ CREATE POLICY "Staff can view clinic patients"
     )
   );
 
--- Le staff peut créer des patients
+DROP POLICY IF EXISTS "Staff can insert patients" ON patients;
 CREATE POLICY "Staff can insert patients"
   ON patients FOR INSERT
   WITH CHECK (
@@ -267,7 +263,7 @@ CREATE POLICY "Staff can insert patients"
     )
   );
 
--- Le staff peut modifier les patients
+DROP POLICY IF EXISTS "Staff can update patients" ON patients;
 CREATE POLICY "Staff can update patients"
   ON patients FOR UPDATE
   USING (
@@ -278,12 +274,10 @@ CREATE POLICY "Staff can update patients"
     )
   );
 
--- ============================================
--- 15. ROW LEVEL SECURITY - APPOINTMENTS
--- ============================================
+-- APPOINTMENTS
 ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
 
--- Les patients peuvent voir leurs rendez-vous
+DROP POLICY IF EXISTS "Patients can view own appointments" ON appointments;
 CREATE POLICY "Patients can view own appointments"
   ON appointments FOR SELECT
   USING (
@@ -294,7 +288,7 @@ CREATE POLICY "Patients can view own appointments"
     )
   );
 
--- Le staff peut voir les rendez-vous de leur clinique
+DROP POLICY IF EXISTS "Staff can view clinic appointments" ON appointments;
 CREATE POLICY "Staff can view clinic appointments"
   ON appointments FOR SELECT
   USING (
@@ -305,7 +299,7 @@ CREATE POLICY "Staff can view clinic appointments"
     )
   );
 
--- Le staff peut créer des rendez-vous
+DROP POLICY IF EXISTS "Staff can insert appointments" ON appointments;
 CREATE POLICY "Staff can insert appointments"
   ON appointments FOR INSERT
   WITH CHECK (
@@ -316,7 +310,7 @@ CREATE POLICY "Staff can insert appointments"
     )
   );
 
--- Les patients peuvent créer leurs propres rendez-vous
+DROP POLICY IF EXISTS "Patients can insert own appointments" ON appointments;
 CREATE POLICY "Patients can insert own appointments"
   ON appointments FOR INSERT
   WITH CHECK (
@@ -327,12 +321,21 @@ CREATE POLICY "Patients can insert own appointments"
     )
   );
 
--- ============================================
--- 16. ROW LEVEL SECURITY - CONSULTATIONS
--- ============================================
+DROP POLICY IF EXISTS "Staff can update appointments" ON appointments;
+CREATE POLICY "Staff can update appointments"
+  ON appointments FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM clinic_staff
+      WHERE clinic_staff.clinic_id = appointments.clinic_id
+      AND clinic_staff.user_id = auth.uid()
+    )
+  );
+
+-- CONSULTATIONS
 ALTER TABLE consultations ENABLE ROW LEVEL SECURITY;
 
--- Les patients peuvent voir leurs consultations
+DROP POLICY IF EXISTS "Patients can view own consultations" ON consultations;
 CREATE POLICY "Patients can view own consultations"
   ON consultations FOR SELECT
   USING (
@@ -343,33 +346,151 @@ CREATE POLICY "Patients can view own consultations"
     )
   );
 
--- Les médecins peuvent voir leurs consultations
+DROP POLICY IF EXISTS "Doctors can view own consultations" ON consultations;
 CREATE POLICY "Doctors can view own consultations"
   ON consultations FOR SELECT
   USING (doctor_id = auth.uid());
 
--- Les médecins peuvent créer des consultations
+DROP POLICY IF EXISTS "Doctors can insert consultations" ON consultations;
 CREATE POLICY "Doctors can insert consultations"
   ON consultations FOR INSERT
   WITH CHECK (doctor_id = auth.uid());
 
--- ============================================
--- 17. ROW LEVEL SECURITY - NOTIFICATIONS
--- ============================================
+DROP POLICY IF EXISTS "Doctors can update consultations" ON consultations;
+CREATE POLICY "Doctors can update consultations"
+  ON consultations FOR UPDATE
+  USING (doctor_id = auth.uid());
+
+-- PRESCRIPTIONS
+ALTER TABLE prescriptions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Patients can view own prescriptions" ON prescriptions;
+CREATE POLICY "Patients can view own prescriptions"
+  ON prescriptions FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM patients
+      WHERE patients.id = prescriptions.patient_id
+      AND patients.profile_id = auth.uid()
+    )
+  );
+
+DROP POLICY IF EXISTS "Doctors can view own prescriptions" ON prescriptions;
+CREATE POLICY "Doctors can view own prescriptions"
+  ON prescriptions FOR SELECT
+  USING (doctor_id = auth.uid());
+
+DROP POLICY IF EXISTS "Doctors can insert prescriptions" ON prescriptions;
+CREATE POLICY "Doctors can insert prescriptions"
+  ON prescriptions FOR INSERT
+  WITH CHECK (doctor_id = auth.uid());
+
+-- MEDICAL_HISTORY
+ALTER TABLE medical_history ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Patients can view own medical history" ON medical_history;
+CREATE POLICY "Patients can view own medical history"
+  ON medical_history FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM patients
+      WHERE patients.id = medical_history.patient_id
+      AND patients.profile_id = auth.uid()
+    )
+  );
+
+DROP POLICY IF EXISTS "Staff can view clinic medical history" ON medical_history;
+CREATE POLICY "Staff can view clinic medical history"
+  ON medical_history FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM patients
+      JOIN clinic_staff ON clinic_staff.clinic_id = patients.clinic_id
+      WHERE patients.id = medical_history.patient_id
+      AND clinic_staff.user_id = auth.uid()
+    )
+  );
+
+DROP POLICY IF EXISTS "Staff can insert medical history" ON medical_history;
+CREATE POLICY "Staff can insert medical history"
+  ON medical_history FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM patients
+      JOIN clinic_staff ON clinic_staff.clinic_id = patients.clinic_id
+      WHERE patients.id = medical_history.patient_id
+      AND clinic_staff.user_id = auth.uid()
+    )
+  );
+
+-- SERVICES
+ALTER TABLE services ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Staff can view clinic services" ON services;
+CREATE POLICY "Staff can view clinic services"
+  ON services FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM clinic_staff
+      WHERE clinic_staff.clinic_id = services.clinic_id
+      AND clinic_staff.user_id = auth.uid()
+    )
+  );
+
+DROP POLICY IF EXISTS "Staff can insert services" ON services;
+CREATE POLICY "Staff can insert services"
+  ON services FOR INSERT
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM clinic_staff
+      WHERE clinic_staff.clinic_id = services.clinic_id
+      AND clinic_staff.user_id = auth.uid()
+    )
+  );
+
+-- NOTIFICATIONS
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
--- Les utilisateurs peuvent voir leurs notifications
+DROP POLICY IF EXISTS "Users can view own notifications" ON notifications;
 CREATE POLICY "Users can view own notifications"
   ON notifications FOR SELECT
   USING (user_id = auth.uid());
 
--- Les utilisateurs peuvent mettre à jour leurs notifications
+DROP POLICY IF EXISTS "Users can update own notifications" ON notifications;
 CREATE POLICY "Users can update own notifications"
   ON notifications FOR UPDATE
   USING (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can insert own notifications" ON notifications;
+CREATE POLICY "Users can insert own notifications"
+  ON notifications FOR INSERT
+  WITH CHECK (user_id = auth.uid());
+
+-- DOCTOR_AVAILABILITY
+ALTER TABLE doctor_availability ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Doctors can manage own availability" ON doctor_availability;
+CREATE POLICY "Doctors can manage own availability"
+  ON doctor_availability FOR ALL
+  USING (doctor_id = auth.uid())
+  WITH CHECK (doctor_id = auth.uid());
+
+-- CLINIC_STAFF
+ALTER TABLE clinic_staff ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Staff can view clinic staff" ON clinic_staff;
+CREATE POLICY "Staff can view clinic staff"
+  ON clinic_staff FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM clinic_staff cs
+      WHERE cs.clinic_id = clinic_staff.clinic_id
+      AND cs.user_id = auth.uid()
+    )
+  );
+
 -- ============================================
--- 18. FONCTIONS UTILITAIRES
+-- ⚙️ FONCTIONS UTILITAIRES
 -- ============================================
 
 -- Fonction pour obtenir le rôle dans une clinique
@@ -402,10 +523,10 @@ RETURNS BOOLEAN AS $$
 $$ LANGUAGE SQL SECURITY DEFINER;
 
 -- ============================================
--- 19. TRIGGERS POUR UPDATED_AT
+-- 🔄 TRIGGERS POUR UPDATED_AT
 -- ============================================
 
--- Fonction pour mettre à jour updated_at
+-- Fonction pour mettre à jour updated_at automatiquement
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -415,32 +536,48 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Appliquer le trigger sur toutes les tables avec updated_at
-CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles
+DROP TRIGGER IF EXISTS update_profiles_updated_at ON profiles;
+CREATE TRIGGER update_profiles_updated_at 
+  BEFORE UPDATE ON profiles
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_clinics_updated_at BEFORE UPDATE ON clinics
+DROP TRIGGER IF EXISTS update_clinics_updated_at ON clinics;
+CREATE TRIGGER update_clinics_updated_at 
+  BEFORE UPDATE ON clinics
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_patients_updated_at BEFORE UPDATE ON patients
+DROP TRIGGER IF EXISTS update_patients_updated_at ON patients;
+CREATE TRIGGER update_patients_updated_at 
+  BEFORE UPDATE ON patients
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_services_updated_at BEFORE UPDATE ON services
+DROP TRIGGER IF EXISTS update_services_updated_at ON services;
+CREATE TRIGGER update_services_updated_at 
+  BEFORE UPDATE ON services
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_appointments_updated_at BEFORE UPDATE ON appointments
+DROP TRIGGER IF EXISTS update_appointments_updated_at ON appointments;
+CREATE TRIGGER update_appointments_updated_at 
+  BEFORE UPDATE ON appointments
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_consultations_updated_at BEFORE UPDATE ON consultations
+DROP TRIGGER IF EXISTS update_consultations_updated_at ON consultations;
+CREATE TRIGGER update_consultations_updated_at 
+  BEFORE UPDATE ON consultations
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_prescriptions_updated_at BEFORE UPDATE ON prescriptions
+DROP TRIGGER IF EXISTS update_prescriptions_updated_at ON prescriptions;
+CREATE TRIGGER update_prescriptions_updated_at 
+  BEFORE UPDATE ON prescriptions
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_medical_history_updated_at BEFORE UPDATE ON medical_history
+DROP TRIGGER IF EXISTS update_medical_history_updated_at ON medical_history;
+CREATE TRIGGER update_medical_history_updated_at 
+  BEFORE UPDATE ON medical_history
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================
--- 20. INDEXES POUR PERFORMANCE
+-- 📊 INDEXES POUR PERFORMANCE
 -- ============================================
 
 CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role);
@@ -451,15 +588,34 @@ CREATE INDEX IF NOT EXISTS idx_appointments_clinic ON appointments(clinic_id);
 CREATE INDEX IF NOT EXISTS idx_appointments_patient ON appointments(patient_id);
 CREATE INDEX IF NOT EXISTS idx_appointments_doctor ON appointments(doctor_id);
 CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments(appointment_date);
+CREATE INDEX IF NOT EXISTS idx_appointments_status ON appointments(status);
 CREATE INDEX IF NOT EXISTS idx_consultations_patient ON consultations(patient_id);
 CREATE INDEX IF NOT EXISTS idx_consultations_doctor ON consultations(doctor_id);
+CREATE INDEX IF NOT EXISTS idx_consultations_appointment ON consultations(appointment_id);
+CREATE INDEX IF NOT EXISTS idx_prescriptions_patient ON prescriptions(patient_id);
+CREATE INDEX IF NOT EXISTS idx_prescriptions_doctor ON prescriptions(doctor_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(user_id, is_read);
+CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_doctor_availability_doctor ON doctor_availability(doctor_id);
+CREATE INDEX IF NOT EXISTS idx_doctor_availability_day ON doctor_availability(doctor_id, day_of_week);
 
 -- ============================================
--- FIN DU SCHÉMA
+-- MEDICAL DOCUMENTS (Supabase Storage metadata)
 -- ============================================
--- Vérifiez que toutes les tables sont créées :
--- SELECT table_name FROM information_schema.tables 
--- WHERE table_schema = 'public' ORDER BY table_name;
+CREATE TABLE IF NOT EXISTS medical_documents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  patient_id UUID NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
+  uploaded_by UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  consultation_id UUID REFERENCES consultations(id) ON DELETE SET NULL,
+  file_name TEXT NOT NULL,
+  file_type TEXT,
+  file_size INTEGER,
+  storage_path TEXT NOT NULL,
+  document_type TEXT NOT NULL CHECK (document_type IN ('lab_result', 'scan', 'prescription', 'report', 'other')),
+  description TEXT,
+  uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_medical_documents_patient ON medical_documents(patient_id);
+CREATE INDEX IF NOT EXISTS idx_medical_documents_uploaded_by ON medical_documents(uploaded_by);

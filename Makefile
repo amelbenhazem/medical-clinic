@@ -25,8 +25,12 @@ clean: ## Clean Docker resources
 deploy: ## Deploy to Kubernetes
 	./deploy.sh
 
-k8s-deploy: ## Deploy to Kubernetes (alias)
-	kubectl apply -f k8s/
+k8s-deploy: ## Deploy Kubernetes manifests (skips placeholder secrets)
+	kubectl apply -f k8s/namespace.yaml
+	kubectl apply -f k8s/configmap.yaml
+	kubectl apply -f k8s/deployment.yaml
+	kubectl apply -f k8s/service.yaml
+	kubectl apply -f k8s/ingress.yaml
 
 k8s-status: ## Check Kubernetes deployment status
 	kubectl get all -n nextjs-app

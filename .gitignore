@@ -1,9 +1,36 @@
-/node_modules
-/.next
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Env — never commit real keys
+.env
 .env.local
+.env.*.local
+.env.production
+.env.development
+
+# Logs and debug
+*.log
+npm-debug.log*
 .mcp.json
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Tests / local artifacts
+coverage/
+.nyc_output/
+.playwright-mcp/
 /project-context
-.playwright-mcp/doctor-dashboard-test.png
-.playwright-mcp/doctor-schedule-test.png
-.playwright-mcp/full-schedule-page.png
-.playwright-mcp/schedule-with-sidebar.png
+
+# Certificates
+*.pem
+!*.example.pem

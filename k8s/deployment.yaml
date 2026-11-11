@@ -24,7 +24,7 @@ spec:
       - name: ghcr-secret
       containers:
       - name: nextjs
-        image: ghcr.io/yusseftekup/projet-react-fac:latest
+        image: ghcr.io/amelbenhazem/medical-clinic:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 3000
@@ -61,6 +61,12 @@ spec:
             secretKeyRef:
               name: nextjs-secrets
               key: SUPABASE_SERVICE_ROLE_KEY
+        - name: GOOGLE_GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: nextjs-secrets
+              key: GOOGLE_GEMINI_API_KEY
+              optional: true
         resources:
           requests:
             memory: "256Mi"

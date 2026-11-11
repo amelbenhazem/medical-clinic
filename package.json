@@ -1,7 +1,8 @@
 {
-  "name": "med",
+  "name": "medical-clinic",
   "version": "0.1.0",
   "private": true,
+  "description": "Role-based medical clinic management platform built with Next.js, Supabase and Gemini",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
